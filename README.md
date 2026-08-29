@@ -164,7 +164,7 @@ Set up a JTA Data Source in your application server (e.g., WildFly `standalone.x
     <driver>mysql</driver>
     <security>
         <user-name>root</user-name>
-        <password>YOUR_PASSWORD</password>
+        <password>ENTERYOURDBPASSWORDHERE</password>
     </security>
 </datasource>
 ```

@@ -4,11 +4,17 @@
 # Log file
 *.log
 
-# BlueJ files
-*.ctxt
+# Build & Target directories
+target/
+**/target/
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
 
 # Package Files #
 *.jar
@@ -19,6 +25,6 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
