@@ -1,0 +1,11 @@
+lk/jiat/globaltrade/web/rest/TariffConfigResource.class
+lk/jiat/globaltrade/web/rest/AuthResource.class
+lk/jiat/globaltrade/web/rest/CustomerResource.class
+lk/jiat/globaltrade/web/rest/InventoryResource.class
+lk/jiat/globaltrade/web/rest/SupportResource.class
+lk/jiat/globaltrade/web/config/JaxRsApplication.class
+lk/jiat/globaltrade/web/rest/UserResource.class
+lk/jiat/globaltrade/web/rest/CustomsResource.class
+lk/jiat/globaltrade/web/rest/VendorResource.class
+lk/jiat/globaltrade/web/rest/ShipmentResource.class
+lk/jiat/globaltrade/web/rest/MetricsResource.class

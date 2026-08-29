@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>lk.jiat.globaltrade</groupId>
+        <artifactId>globaltrade-online-core</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>globaltrade-ear</artifactId>
+    <packaging>ear</packaging>
+
+    <name>GlobalTrade - Enterprise Application Archive (EAR)</name>
+
+    <dependencies>
+        <!-- EJB Module -->
+        <dependency>
+            <groupId>lk.jiat.globaltrade</groupId>
+            <artifactId>globaltrade-ejb</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>ejb</type>
+        </dependency>
+
+        <!-- Web Module -->
+        <dependency>
+            <groupId>lk.jiat.globaltrade</groupId>
+            <artifactId>globaltrade-web</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>war</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>globaltrade-ear-1.0</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <version>8</version>
+                    <defaultLibBundleDir>lib</defaultLibBundleDir>
+                    <modules>
+                        <ejbModule>
+                            <groupId>lk.jiat.globaltrade</groupId>
+                            <artifactId>globaltrade-ejb</artifactId>
+                        </ejbModule>
+                        <webModule>
+                            <groupId>lk.jiat.globaltrade</groupId>
+                            <artifactId>globaltrade-web</artifactId>
+                            <contextRoot>/globaltrade</contextRoot>
+                        </webModule>
+                    </modules>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Account Registration - GlobalTrade Portal</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="stylesheet" href="css/customer-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- SweetAlert2 UI library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <header class="customer-header">
+        <a href="customer-home.html" class="brand-container">
+            <img src="images/logo.png" alt="GlobalTrade Logo" class="brand-logo">
+            <div>
+                <span class="brand-title">GlobalTrade</span>
+                <span class="brand-sub">CUSTOMER FREIGHT PORTAL</span>
+            </div>
+        </a>
+
+        <nav class="nav-links">
+            <a href="customer-home.html" class="nav-link">Home</a>
+            <a href="customer-home.html#calculator" class="nav-link">Rate Estimator</a>
+            <a href="javascript:navigateCustomer('book-shipment')" class="nav-link">Book Shipment</a>
+            <a href="javascript:navigateCustomer('my-shipments')" class="nav-link">My Shipments & Tracking</a>
+            <a href="javascript:navigateCustomer('profile')" class="nav-link">My Profile</a>
+            <a href="javascript:navigateCustomer('support')" class="nav-link">Support</a>
+        </nav>
+
+        <div class="auth-btn-group" id="header-auth-group">
+            <a href="../index.html" class="btn btn-outline"
+                style="border-color: var(--accent-purple); color: var(--accent-purple);"
+                title="Switch to Admin Portal">🛡️ Admin Portal</a>
+            <a href="customer-login.html" class="btn btn-outline">Already Registered? Sign In</a>
+        </div>
+    </header>
+
+    <div class="auth-page-container">
+        <div class="customer-auth-card" style="max-width: 680px; padding: 40px 44px;">
+            <h2>Customer Account Signup</h2>
+            <p>Register to book shipments, view real-time tracking telemetry, and receive customs clearance updates</p>
+
+            <form id="form-customer-register" class="auth-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="reg-first-name">First Name *</label>
+                        <input type="text" id="reg-first-name" class="form-control" placeholder="Enter Your First Name"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-last-name">Last Name *</label>
+                        <input type="text" id="reg-last-name" class="form-control" placeholder="Enter Your Last Name"
+                            required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
+                    <div class="form-group">
+                        <label for="reg-email">Business Email Address *</label>
+                        <input type="email" id="reg-email" class="form-control"
+                            placeholder="example.business@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-mobile">Mobile Number *</label>
+                        <input type="text" id="reg-mobile" class="form-control" placeholder="+1-555-0188" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
+                    <div class="form-group">
+                        <label for="reg-password">Password *</label>
+                        <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required
+                            oninput="onRegisterPasswordInput()">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password-confirm">Confirm Password *</label>
+                        <input type="password" id="reg-password-confirm" class="form-control" placeholder="••••••••"
+                            required oninput="onRegisterPasswordInput()">
+                    </div>
+                </div>
+
+                <!-- Live Password Strength Meter & Realtime Constraints Panel -->
+                <div id="password-strength-panel"
+                    style="margin-top: 14px; background: rgba(37, 99, 235, 0.04); border: 1px solid rgba(37, 99, 235, 0.15); border-radius: 10px; padding: 14px; text-align: left; font-size: 12.5px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: var(--text-secondary);">Password Strength:</span>
+                        <strong id="strength-label" style="color: var(--text-muted);">Too Weak</strong>
+                    </div>
+                    <div
+                        style="height: 6px; width: 100%; background: var(--border-color); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                        <div id="strength-bar"
+                            style="height: 100%; width: 0%; background: #ef4444; transition: all 0.3s ease;"></div>
+                    </div>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; color: var(--text-muted);">
+                        <div id="chk-len"><span style="opacity: 0.35; margin-right: 4px;">○</span> Min. 8 Characters
+                        </div>
+                        <div id="chk-upper"><span style="opacity: 0.35; margin-right: 4px;">○</span> Upper Case Letter
+                            (A-Z)</div>
+                        <div id="chk-lower"><span style="opacity: 0.35; margin-right: 4px;">○</span> Lower Case Letter
+                            (a-z)</div>
+                        <div id="chk-digit"><span style="opacity: 0.35; margin-right: 4px;">○</span> Number Digit (0-9)
+                        </div>
+                        <div id="chk-match" style="grid-column: span 2;"><span
+                                style="opacity: 0.35; margin-right: 4px;">○</span> Passwords Match</div>
+                    </div>
+                </div>
+
+                <div id="reg-error"
+                    style="display: none; color: var(--accent-rose); background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.2); padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 16px; text-align: left;">
+                </div>
+
+                <button type="submit" id="btn-submit-register" class="btn btn-primary btn-block"
+                    style="padding: 14px; font-size: 15px; margin-top: 20px;">Create User Account</button>
+            </form>
+
+            <div style="margin-top: 20px; font-size: 12.5px; color: var(--text-muted);">
+                Your customer account is protected by enterprise security & encryption.
+            </div>
+        </div>
+    </div>
+
+    <!-- Rich Glassmorphic Customer Footer -->
+    <footer class="customer-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img src="images/logo.png" alt="GlobalTrade Logo" style="height: 38px; width: auto;">
+                    <div>
+                        <strong style="font-size: 18px; color: var(--text-primary); display: block;">GlobalTrade
+                            Corporation</strong>
+                        <span
+                            style="font-size: 10px; color: var(--accent-blue); font-weight: 700; letter-spacing: 1px;">GLOBAL
+                            LOGISTICS PLATFORM</span>
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                    Enterprise multi-module supply chain portal powered by Jakarta EE 10, EJB 3.2 Session Beans, JTA
+                    CMT, and ActiveMQ JMS.
+                </p>
+            </div>
+
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <h4>Customer Portal</h4>
+                    <a href="customer-home.html">Freight Home</a>
+                    <a href="customer-home.html#calculator">Rate Estimator</a>
+                    <a href="javascript:navigateCustomer('book-shipment')">Book Shipment</a>
+                    <a href="javascript:navigateCustomer('my-shipments')">Telemetry Tracking</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Logistics Operations</h4>
+                    <a href="javascript:navigateCustomer('profile')">Shipper Profile</a>
+                    <a href="javascript:navigateCustomer('support')">Customs Operations</a>
+                    <a href="../index.html">Admin Portal</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Global Logistics Hubs</h4>
+                    <span>🇺🇸 Los Angeles (Pacific Coast)</span>
+                    <span>🇸🇬 Singapore (SE Asia Terminal)</span>
+                    <span>🇩🇪 Frankfurt (Central European)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 GlobalTrade Logistics Corporation. All Rights Reserved.</span>
+            <span>Secured with Enterprise End-to-End Encryption & Security</span>
+        </div>
+    </footer>
+
+    <script src="js/customer-app.js"></script>
+</body>
+
+</html>

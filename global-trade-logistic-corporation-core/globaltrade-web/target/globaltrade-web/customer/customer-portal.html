@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - GlobalTrade Portal</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="stylesheet" href="css/customer-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 & Leaflet.js Map UI libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <!-- Single Top Navigation Header -->
+    <header class="customer-header">
+        <a href="customer-home.html" class="brand-container">
+            <img src="images/logo.png" alt="GlobalTrade Logo" class="brand-logo">
+            <div>
+                <span class="brand-title">GlobalTrade</span>
+                <span class="brand-sub">CUSTOMER FREIGHT PORTAL</span>
+            </div>
+        </a>
+
+        <!-- Top Navigation Bar for All Customer Sections -->
+        <nav class="nav-links">
+            <a href="customer-home.html" class="nav-link">Home</a>
+            <a href="javascript:switchTab('rate-estimator')" class="nav-link" data-target="rate-estimator">Rate Estimator</a>
+            <a href="javascript:switchTab('book-shipment')" class="nav-link active" data-target="book-shipment">Book Shipment</a>
+            <a href="javascript:switchTab('my-shipments')" class="nav-link" data-target="my-shipments">My Shipments & Tracking</a>
+            <a href="javascript:switchTab('profile')" class="nav-link" data-target="profile">My Profile</a>
+            <a href="javascript:switchTab('support')" class="nav-link" data-target="support">Support</a>
+        </nav>
+
+        <!-- Dynamic Auth Group State -->
+        <div class="auth-btn-group" id="header-auth-group">
+            <button class="btn btn-outline" onclick="handleCustomerLogout()">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="portal-container">
+        <!-- Tab 1: Book Shipment -->
+        <section id="tab-book-shipment" class="tab-pane active">
+            <div class="calculator-card" style="margin: 0; max-width: 100%;">
+                <div class="calculator-title">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-blue);">
+                            <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+                            <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+                            <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+                            <path d="M12 10V4"/>
+                            <path d="M12 4L9 6"/>
+                        </svg>
+                        Dispatch New Global Freight Booking
+                    </span>
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.6;">
+                    Select your origin hub, destination route, preferred carrier line, and cargo payload. Invokes EJB Session Bean <code>ShipmentServiceBean.createShipment()</code> under Container-Managed Transactions (CMT).
+                </p>
+
+                <form onsubmit="submitCustomerBooking(event)" class="auth-form">
+                    <!-- Step 1: Product Selection -->
+                    <div style="background: rgba(37, 99, 235, 0.04); border: 1px solid rgba(37, 99, 235, 0.15); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.5px;">Step 1: Select Freight Cargo Item</div>
+                            <span class="badge badge-info" id="product-category-badge" style="font-size: 11px; display: none;">Category</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; align-items: flex-end; margin-bottom: 16px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-weight: 600;">Cargo Product SKU *</label>
+                                <select id="book-sku" class="form-control" onchange="onCustomerProductSelectChange()" required>
+                                    <option value="" disabled selected>-- Select a Cargo Product SKU --</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-weight: 600;">Available Stock</label>
+                                <input type="text" id="book-stock-display" class="form-control" placeholder="--" readonly style="background: var(--bg-input); font-weight: bold; color: var(--accent-emerald);">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-weight: 600;">Unit Price</label>
+                                <input type="text" id="book-price-display" class="form-control" placeholder="--" readonly style="background: var(--bg-input); font-weight: bold; font-family: var(--font-mono);">
+                            </div>
+                        </div>
+
+                        <!-- Expanded Full Product Specification & Cargo Details Sheet -->
+                        <div id="product-spec-panel" style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 10px; padding: 14px; font-size: 13px; color: var(--text-secondary); margin-top: 12px;">
+                            <div style="text-align: center; color: var(--text-muted); padding: 6px;">
+                                ℹ️ Select a product to view specifications.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Auto-filled Origin & Product Supplier (Locked) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label style="font-weight: 600;">Origin Warehouse Hub (Auto-filled from SKU Location) 🔒</label>
+                            <input type="text" id="book-origin-display" class="form-control" placeholder="-- Select Cargo SKU First --" readonly style="background: var(--bg-input); font-weight: 600; color: var(--accent-blue);">
+                            <input type="hidden" id="book-origin" value="">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight: 600;">Assigned Product Supplier Vendor 🔒</label>
+                            <input type="text" id="book-vendor-display" class="form-control" placeholder="-- Select Cargo SKU First --" readonly style="background: var(--bg-input); font-weight: 600; color: var(--text-primary);">
+                            <input type="hidden" id="book-vendor" value="">
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Destination, Shipping Line & Quantity -->
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label style="font-weight: 600;">Destination Terminal (To Route) *</label>
+                            <select id="book-dest" class="form-control" required>
+                                <option value="" disabled selected>-- Select Destination Route Terminal --</option>
+                                <option value="1">Port of Hamburg Cargo Terminal (Hamburg, Germany)</option>
+                                <option value="2">Singapore International Cargo Center (Singapore)</option>
+                                <option value="3">Port of Los Angeles Container Complex (LA, USA)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight: 600;">Preferred Shipping Line Carrier *</label>
+                            <select id="book-carrier" class="form-control" required>
+                                <option value="" disabled selected>-- Select Preferred Shipping Carrier --</option>
+                                <option value="1">Maersk Line A/S (Ocean Freight)</option>
+                                <option value="2">Ocean Network Express (ONE)</option>
+                                <option value="3">DHL Global Forwarding (Air Express)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight: 600;">Order Quantity Units *</label>
+                            <input type="number" id="book-qty" placeholder="e.g. 10" min="1" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Live Cost Calculation & Order Summary Box -->
+                    <div id="stock-warning-banner" style="display: none; margin-top: 20px; background: rgba(239, 68, 68, 0.1); border: 1.5px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 12px; padding: 14px 18px; font-size: 13.5px; font-weight: 500;">
+                        ⚠️ <strong>Insufficient Available Stock:</strong> Quantity exceeds available warehouse stock.
+                    </div>
+
+                    <div id="booking-cost-summary-box" style="margin-top: 20px; background: rgba(37, 99, 235, 0.05); border: 1.5px solid rgba(37, 99, 235, 0.2); border-radius: 16px; padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                            <strong style="font-size: 15px; color: var(--text-primary);">📊 Freight Tariff & Order Summary</strong>
+                            <span class="badge badge-info" style="font-size: 11px;">JTA CMT Estimate</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; font-size: 13.5px; align-items: center;">
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 12px;">Base Route Tariff:</span>
+                                <strong id="book-cost-base" style="color: var(--text-primary); font-family: var(--font-mono); font-size: 15px;">$1,200.00</strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 12px;">Carrier Line Surcharge:</span>
+                                <strong id="book-cost-carrier" style="color: var(--text-primary); font-family: var(--font-mono); font-size: 15px;">+$150.00</strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 12px;">Cargo Payload Freight:</span>
+                                <strong id="book-cost-payload" style="color: var(--text-primary); font-family: var(--font-mono); font-size: 15px;">$525.00 (150 units)</strong>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="color: var(--text-secondary); font-weight: 700; display: block; font-size: 11.5px; text-transform: uppercase;">Total Estimated Cost:</span>
+                                <strong id="book-cost-total" style="color: var(--accent-emerald); font-family: var(--font-mono); font-size: 26px; font-weight: 800;">$1,875.00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 28px; text-align: right;">
+                        <button type="submit" id="btn-submit-booking" class="btn btn-primary" style="padding: 14px 36px; font-size: 15px;">🚢 Confirm & Dispatch EJB Shipment ($1,875.00)</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Tab 2: My Active Shipments & Telemetry Tracker -->
+        <section id="tab-my-shipments" class="tab-pane">
+            <!-- Telemetry Stats Summary Grid (3 Single Line Boxes) -->
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="calculator-card" style="margin: 0; padding: 22px; width: 100%;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Active Freight Orders</div>
+                    <div style="font-size: 28px; font-weight: 800; color: var(--accent-blue); margin: 8px 0 4px;" id="stat-active-shipments-count">0 Shipments</div>
+                    <div style="font-size: 11.5px; color: var(--accent-emerald); font-weight: 600;" id="stat-active-shipments-sub">🚢 En Route Global Logistics</div>
+                </div>
+
+                <div class="calculator-card" style="margin: 0; padding: 22px; width: 100%;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Next Estimated Arrival</div>
+                    <div style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 8px 0 4px; font-family: var(--font-mono);" id="stat-next-arrival-date">Pending Booking</div>
+                    <div style="font-size: 11.5px; color: var(--accent-blue); font-weight: 600;" id="stat-next-arrival-dest">📍 Select Freight Order</div>
+                </div>
+
+                <div class="calculator-card" style="margin: 0; padding: 22px; width: 100%;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Customs Clearance Status</div>
+                    <div style="font-size: 24px; font-weight: 800; color: var(--accent-amber); margin: 8px 0 4px;" id="stat-customs-hold-count">0 Customs Holds</div>
+                    <div style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;" id="stat-customs-cleared-count">0 Declarations Cleared</div>
+                </div>
+            </div>
+
+            <!-- Table Card with Search & Filter Bar -->
+            <div class="calculator-card" style="margin: 0; max-width: 100%;">
+                <div class="calculator-title" style="justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                    <span>My Registered Freight Orders & Telemetry Tracker</span>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="shipment-search-input" onkeyup="filterCustomerShipments()" placeholder="🔍 Search tracking #, carrier..." class="form-control" style="width: 240px; padding: 8px 14px; font-size: 13px;">
+                        <select id="shipment-status-filter" onchange="filterCustomerShipments()" class="form-control" style="width: 160px; padding: 8px 14px; font-size: 13px;">
+                            <option value="ALL">All Statuses</option>
+                            <option value="IN_TRANSIT">In Transit</option>
+                            <option value="CUSTOMS_HOLD">Customs Hold</option>
+                            <option value="DELIVERED">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="overflow-x: hidden; margin-top: 20px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; table-layout: auto;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.02);">
+                                <th style="padding: 14px 14px; white-space: nowrap;">Tracking Number</th>
+                                <th style="padding: 14px 14px;">Origin Logistics Hub</th>
+                                <th style="padding: 14px 14px; white-space: nowrap;">Carrier Line</th>
+                                <th style="padding: 14px 14px; white-space: nowrap;">Current Status</th>
+                                <th style="padding: 14px 14px; white-space: nowrap;">Est. Delivery</th>
+                                <th style="padding: 14px 14px; white-space: nowrap; text-align: right;">Telemetry Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cust-shipments-tbody">
+                            <tr><td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">Fetching customer shipments...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Customer Profile (Redesigned Hero & Structured Cards) -->
+        <section id="tab-profile" class="tab-pane">
+            <!-- Glassmorphic User Profile Hero Card -->
+            <div class="profile-hero-card">
+                <div class="profile-cover-gradient"></div>
+                <div class="profile-hero-content">
+                    <div class="profile-avatar-wrapper">
+                        <img src="images/default-avatar.png" id="profile-avatar-img" class="profile-avatar-main" alt="Customer Profile Picture">
+                        <button type="button" class="avatar-edit-badge" onclick="document.getElementById('profile-img-input').click()" title="Upload / Change Profile Picture">
+                            📷
+                        </button>
+                        <input type="file" id="profile-img-input" accept="image/*" style="display: none;" onchange="uploadCustomerAvatar(event)">
+                    </div>
+
+                    <div class="profile-hero-details">
+                        <div class="profile-user-title">
+                            <h2 id="prof-hero-name">Sarah Jenkins</h2>
+                            <span class="profile-role-tag">CUSTOMER • Verified Shipper</span>
+                        </div>
+                        <p id="prof-hero-email" class="profile-email-sub">sarah.jenkins@company.com</p>
+                        <div class="profile-stats-row">
+                            <div class="profile-stat-badge">📦 <strong id="prof-hero-total-shipments">0</strong> Total Freight Bookings</div>
+                            <div class="profile-stat-badge">🚢 <strong id="prof-hero-active-shipments">0</strong> Active In-Transit</div>
+                            <div class="profile-stat-badge">🛡️ <strong>Encrypted</strong> Security</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-hero-actions">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('profile-img-input').click()">
+                            📷 Upload Picture
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="resetCustomerAvatar()">
+                            ↺ Reset Default
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structured 2-Column Grid for Profile Details -->
+            <div class="profile-grid">
+                <!-- Card 1: Personal & Account Information -->
+                <div class="calculator-card" style="margin: 0; width: 100%;">
+                    <div class="calculator-title">
+                        <span>👤 Personal & Contact Profile</span>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="prof-first-name" value="Sarah" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="prof-last-name" value="Jenkins" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="prof-email" value="sarah.jenkins@company.com" class="form-control" readonly style="background: var(--bg-input); color: var(--text-muted);">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Mobile Phone</label>
+                            <input type="text" id="prof-phone" value="+1-555-0188" class="form-control">
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px; text-align: right;">
+                        <button type="button" class="btn btn-primary" onclick="saveCustomerProfileInfo()">Save Personal Info</button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Corporate Freight & Billing Info -->
+                <div class="calculator-card" style="margin: 0; width: 100%;">
+                    <div class="calculator-title">
+                        <span>🏢 Corporate Freight & Trade Address</span>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>Company / Shipper Entity</label>
+                            <input type="text" id="prof-company" value="Apex Global Forwarding LLC" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>EORI / Customs Tax ID</label>
+                            <input type="text" id="prof-eori" value="US-981023847-EORI" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label>Registered Delivery & Billing Address</label>
+                        <input type="text" id="prof-address" value="450 Trade Tower Suite 800, Los Angeles, CA 90012, USA" class="form-control">
+                    </div>
+                    <div style="margin-top: 24px; text-align: right;">
+                        <button type="button" class="btn btn-primary" onclick="alert('🎉 Corporate Freight Address Updated Successfully!')">Save Address Details</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 4: Customer Support & Messaging -->
+        <section id="tab-support" class="tab-pane">
+            <div class="calculator-card" style="margin: 0; max-width: 100%; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 16px;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Logistics Operations Support & Messaging</h2>
+                        <p style="font-size: 13.5px; color: var(--text-secondary); margin: 0;">Direct inquiry thread with GlobalTrade logistics coordinators and customs officers.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btn-toggle-inquiry-form" onclick="toggleNewInquiryForm()">
+                        + New Support Inquiry
+                    </button>
+                </div>
+
+                <!-- In-Page Form: Create New Support Inquiry (Collapsible) -->
+                <div id="box-new-inquiry-form" style="display: none; background: #ffffff; border: 1.5px solid var(--accent-blue); border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.08); transition: all 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 10px;">
+                        <h3 style="font-size: 16px; font-weight: 800; color: var(--accent-blue); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            💬 Create New Support Inquiry
+                        </h3>
+                        <button type="button" onclick="toggleNewInquiryForm()" style="background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; font-weight: 600;">✕ Hide Form</button>
+                    </div>
+
+                    <form onsubmit="submitNewCustomerInquiry(event)">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                            <div class="form-group">
+                                <label for="inquiry-category" style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Inquiry Category *</label>
+                                <select id="inquiry-category" class="form-control" required style="padding: 10px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                                    <option value="Customs Clearance">Customs Clearance & Trade Border</option>
+                                    <option value="Freight Tracking">Shipment Tracking & Telemetry</option>
+                                    <option value="Tariff Rates">Freight Tariff Rates & Estimates</option>
+                                    <option value="General Inquiry" selected>General Logistics Inquiry</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inquiry-subject" style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Subject / Title *</label>
+                                <input type="text" id="inquiry-subject" class="form-control" placeholder="e.g. Inquiry regarding Customs Clearance for GTL-2026-8802" required style="padding: 10px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inquiry-tracking" style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Tracking # (Optional)</label>
+                                <input type="text" id="inquiry-tracking" class="form-control" placeholder="GTL-2026-8802" style="padding: 10px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inquiry-message" style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Message Details *</label>
+                            <textarea id="inquiry-message" rows="3" class="form-control" placeholder="Please describe your question or issue in detail..." required style="padding: 10px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;"></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+                            <button type="button" class="btn btn-outline" onclick="toggleNewInquiryForm()" style="padding: 10px 20px;">Cancel</button>
+                            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Submit Support Inquiry</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 2-Column Support Workspace -->
+                <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px; min-height: 480px;">
+                    <!-- Left: My Tickets List -->
+                    <div style="background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                        <h3 style="font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">My Inquiries</h3>
+                        <div id="cust-tickets-list" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; max-height: 440px; padding-right: 4px;">
+                            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">Loading support tickets...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Active Chat Thread Pane -->
+                    <div id="cust-chat-pane" style="background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                        <!-- Thread Header -->
+                        <div id="cust-chat-header" style="border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 14px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h3 id="cust-chat-title" style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">Select an inquiry to view conversation</h3>
+                                    <span id="cust-chat-sub" style="font-size: 12.5px; color: var(--text-muted);">No ticket selected</span>
+                                </div>
+                                <span id="cust-chat-status-badge" class="badge badge-info" style="display: none;">OPEN</span>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages Thread -->
+                        <div id="cust-chat-messages-container" style="flex: 1; overflow-y: auto; max-height: 320px; display: flex; flex-direction: column; gap: 12px; padding: 14px; margin-bottom: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div style="text-align: center; color: var(--text-muted); font-size: 13.5px; margin: auto;">💬 Select a ticket from the left panel or create a new inquiry.</div>
+                        </div>
+
+                        <!-- Reply Input Box -->
+                        <form id="form-cust-reply" onsubmit="submitCustomerReply(event)" style="display: flex; gap: 12px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <input type="text" id="cust-reply-text" class="form-control" placeholder="Type your message to support..." required disabled style="padding: 12px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                            </div>
+                            <button type="submit" id="btn-cust-send-reply" class="btn btn-primary" disabled style="padding: 12px 20px;">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 5: Route Shipping Rate Estimator -->
+        <section id="tab-rate-estimator" class="tab-pane">
+            <!-- Full-Width Calculator Card -->
+            <div class="calculator-card" style="margin: 0 0 24px 0; width: 100%; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <div class="calculator-title" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 20px;">
+                    <span style="font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-blue);">
+                            <rect x="4" y="2" width="16" height="20" rx="2"/>
+                            <line x1="8" y1="6" x2="16" y2="6"/>
+                            <line x1="16" y1="14" x2="16" y2="18"/>
+                            <path d="M16 10h.01"/>
+                            <path d="M12 10h.01"/>
+                            <path d="M8 10h.01"/>
+                            <path d="M12 14h.01"/>
+                            <path d="M8 14h.01"/>
+                            <path d="M12 18h.01"/>
+                            <path d="M8 18h.01"/>
+                        </svg>
+                        Route Shipping Tariff Rate Estimator
+                    </span>
+                </div>
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                    Select your origin hub, destination hub, and total payload weight to calculate an instant freight tariff estimate.
+                </p>
+
+                <div class="form-grid-3" style="gap: 16px;">
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Origin Hub *</label>
+                        <select id="portal-calc-origin" class="form-control" style="padding: 11px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                            <option value="1">Pacific Coast Logistics Hub (Los Angeles, USA)</option>
+                            <option value="2">Southeast Asia Shipping Terminal (Singapore)</option>
+                            <option value="3">Central European Freight Hub (Frankfurt, Germany)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Destination Hub *</label>
+                        <select id="portal-calc-dest" class="form-control" style="padding: 11px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                            <option value="3">Port of Hamburg Cargo Terminal (Hamburg, Germany)</option>
+                            <option value="2">Singapore International Cargo Center (Singapore)</option>
+                            <option value="1">Port of Los Angeles Container Complex (LA, USA)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px; display: block;">Payload Weight (KG) *</label>
+                        <input type="number" id="portal-calc-weight" value="250" class="form-control" placeholder="e.g. 250" style="padding: 11px; background: #ffffff; color: var(--text-primary); border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+
+                <!-- Freight Calculation Factors Preview Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                    <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 10px;">
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Base Freight Fee</span>
+                        <strong style="font-size: 13.5px; color: var(--text-primary);">$3.50 / KG</strong>
+                    </div>
+                    <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 10px;">
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Port Handling (THC)</span>
+                        <strong style="font-size: 13.5px; color: var(--accent-blue);">$150.00 Fixed</strong>
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Fuel Surcharge (BAF)</span>
+                        <strong style="font-size: 13.5px; color: var(--accent-emerald);">$85.00 Fixed</strong>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; text-align: right;">
+                    <button type="button" onclick="calculatePortalRouteQuote()" class="btn btn-primary" style="padding: 12px 32px; font-size: 14.5px; border-radius: 10px;">
+                        ⚡ Calculate Tariff Quote
+                    </button>
+                </div>
+
+                <!-- Interactive Quote Result Box -->
+                <div id="portal-calc-result" class="calc-result-box" style="display: none; margin-top: 24px; padding: 24px; background: #eff6ff; border: 1.5px solid #2563eb; border-radius: 14px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <span style="font-size: 12px; color: #1e40af; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Estimated Total Tariff Quote:</span>
+                            <div class="calc-price" id="portal-calc-price-display" style="font-size: 32px; font-weight: 800; color: #1d4ed8; font-family: var(--font-mono);">$1,325.00</div>
+                            <span style="font-size: 12px; color: #3b82f6; font-weight: 500;">Includes base rate + THC port fee + IMO BAF fuel adjustment</span>
+                        </div>
+                        <button type="button" onclick="switchTab('book-shipment')" class="btn btn-primary" style="padding: 12px 24px; font-size: 14px; background: #2563eb;">
+                            Proceed to Book Shipment ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Major Global Trade Corridors Benchmark Grid -->
+            <div style="background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-blue);">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            Popular Global Trade Corridors
+                        </h3>
+                        <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0;">Benchmark estimates for primary ocean container lanes.</p>
+                    </div>
+                    <span class="badge badge-info" style="font-size: 11px;">Updated Today</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">Los Angeles ➔ Hamburg</div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px; font-family: var(--font-mono);">$1,325.00</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">Transit: <strong>14-16 Days</strong> &bull; Ocean FCL</div>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">Singapore ➔ Los Angeles</div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px; font-family: var(--font-mono);">$1,850.00</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">Transit: <strong>16-18 Days</strong> &bull; Ocean FCL</div>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">Frankfurt ➔ Singapore</div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px; font-family: var(--font-mono);">$1,120.00</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">Transit: <strong>12-14 Days</strong> &bull; Ocean FCL</div>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase;">Hamburg ➔ Los Angeles</div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px; font-family: var(--font-mono);">$1,450.00</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">Transit: <strong>15-17 Days</strong> &bull; Ocean FCL</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal: Live Order Tracking Details -->
+    <div id="modal-track-details" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); align-items: center; justify-content: center; z-index: 9999; overflow-y: auto; padding: 20px;">
+        <div class="calculator-card" style="width: 100%; max-width: 780px; text-align: center; max-height: 90vh; overflow-y: auto; margin: auto; background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <div class="calculator-title" style="justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 16px;">
+                <span style="font-weight: 800; font-size: 17px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    📍 Live Telemetry Progress Tracker
+                </span>
+                <button type="button" id="btn-close-track-modal" class="btn btn-outline" style="padding: 6px 14px; font-size: 13px; border-radius: 8px;">✕ Close</button>
+            </div>
+
+            <div class="form-group" style="margin: 14px 0 16px;">
+                <label style="font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Tracking Number</label>
+                <input type="text" id="track-input-num" class="form-control" style="text-align: center; font-weight: 800; font-family: var(--font-mono); font-size: 18px; color: var(--accent-blue); background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 10px;" readonly>
+            </div>
+
+            <!-- Graphical Status Icon & Banner Badge -->
+            <div id="track-status-banner" style="margin: 14px 0 20px; padding: 14px 20px; background: rgba(37, 99, 235, 0.1); border: 1.5px solid var(--accent-blue); border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 14px;">
+                <div id="track-status-icon" style="font-size: 24px; line-height: 1; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--accent-blue); color: #ffffff; border-radius: 50%; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">🚢</div>
+                <div style="text-align: left;">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Live Freight Status</div>
+                    <div id="track-status-text" style="font-size: 16px; font-weight: 800; color: var(--accent-blue);">IN TRANSIT - Cargo En Route to Port</div>
+                </div>
+            </div>
+
+            <!-- Step Progress Bar Timeline -->
+            <div class="tracking-timeline" style="margin: 20px 0;">
+                <div class="tracking-step completed">
+                    <div class="step-icon">1</div>
+                    <span class="step-label">Booking Confirmed</span>
+                </div>
+                <div class="tracking-step completed">
+                    <div class="step-icon">2</div>
+                    <span class="step-label">Cargo Dispatched</span>
+                </div>
+                <div class="tracking-step active">
+                    <div class="step-icon">3</div>
+                    <span class="step-label">In Transit</span>
+                </div>
+                <div class="tracking-step">
+                    <div class="step-icon">4</div>
+                    <span class="step-label">Customs Clear</span>
+                </div>
+                <div class="tracking-step">
+                    <div class="step-icon">5</div>
+                    <span class="step-label">Delivered</span>
+                </div>
+            </div>
+
+            <!-- Interactive Live OpenStreetMap GPS Route Map Container -->
+            <div style="margin-top: 20px; border-radius: 14px; overflow: hidden; border: 1.5px solid #cbd5e1; box-shadow: 0 4px 14px rgba(0,0,0,0.06);">
+                <div style="background: #f8fafc; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
+                    <span>🗺️ Live Ocean GPS Satellite Telemetry Map</span>
+                    <span style="font-size: 11px; color: var(--accent-blue); font-weight: 600;">OpenStreetMap Live Feed</span>
+                </div>
+                <div id="leaflet-track-map" style="height: 320px; width: 100%; z-index: 1;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rich Glassmorphic Customer Footer -->
+    <footer class="customer-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img src="images/logo.png" alt="GlobalTrade Logo" style="height: 38px; width: auto;">
+                    <div>
+                        <strong style="font-size: 18px; color: var(--text-primary); display: block;">GlobalTrade Corporation</strong>
+                        <span style="font-size: 10px; color: var(--accent-blue); font-weight: 700; letter-spacing: 1px;">GLOBAL LOGISTICS PLATFORM</span>
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                    Enterprise multi-module supply chain portal powered by GlobalTrade Logistics Cloud.
+                </p>
+            </div>
+
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <h4>Customer Portal</h4>
+                    <a href="customer-home.html">Freight Home</a>
+                    <a href="javascript:switchTab('rate-estimator')">Rate Estimator</a>
+                    <a href="javascript:switchTab('book-shipment')">Book Shipment</a>
+                    <a href="javascript:switchTab('my-shipments')">Telemetry Tracking</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Logistics Operations</h4>
+                    <a href="javascript:switchTab('profile')">Shipper Profile</a>
+                    <a href="javascript:switchTab('support')">Customs Operations</a>
+                    <a href="../index.html">Admin Portal</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Global Logistics Hubs</h4>
+                    <span>🇺🇸 Los Angeles (Pacific Coast)</span>
+                    <span>🇸🇬 Singapore (SE Asia Terminal)</span>
+                    <span>🇩🇪 Frankfurt (Central European)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 GlobalTrade Logistics Corporation. All Rights Reserved.</span>
+            <span>Secured with Enterprise End-to-End Encryption & Security</span>
+        </div>
+    </footer>
+
+    <script src="js/customer-app.js?v=3.0.0"></script>
+</body>
+</html>

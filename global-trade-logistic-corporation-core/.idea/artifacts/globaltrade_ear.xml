@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-ear" name="globaltrade-ear">
+    <output-path>$PROJECT_DIR$/out/artifacts/globaltrade_ear</output-path>
+    <root id="root">
+      <element id="directory" name="lib">
+        <element id="archive" name="globaltrade-ear.jar">
+          <element id="module-output" name="globaltrade-ear" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

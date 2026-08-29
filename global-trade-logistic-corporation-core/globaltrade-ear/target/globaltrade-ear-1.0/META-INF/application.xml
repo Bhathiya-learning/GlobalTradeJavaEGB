@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_8.xsd" version="8">
+  <description>Enterprise Java EJB 3.x Multi-Module Application for Global Supply Chain Management</description>
+  <display-name>globaltrade-ear</display-name>
+  <module>
+    <ejb>lk.jiat.globaltrade-globaltrade-ejb-1.0-SNAPSHOT.jar</ejb>
+  </module>
+  <module>
+    <web>
+      <web-uri>lk.jiat.globaltrade-globaltrade-web-1.0-SNAPSHOT.war</web-uri>
+      <context-root>/globaltrade</context-root>
+    </web>
+  </module>
+  <library-directory>lib</library-directory>
+</application>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Sign In - GlobalTrade Freight Portal</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="stylesheet" href="css/customer-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 UI library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Customer Top Navigation Header -->
+    <header class="customer-header">
+        <a href="customer-home.html" class="brand-container">
+            <img src="images/logo.png" alt="GlobalTrade Logo" class="brand-logo">
+            <div>
+                <span class="brand-title">GlobalTrade</span>
+                <span class="brand-sub">CUSTOMER FREIGHT PORTAL</span>
+            </div>
+        </a>
+
+        <!-- Top Navigation Bar for All Customer Sections -->
+        <nav class="nav-links">
+            <a href="customer-home.html" class="nav-link">Home</a>
+            <a href="javascript:navigateCustomer('rate-estimator')" class="nav-link">Rate Estimator</a>
+            <a href="javascript:navigateCustomer('book-shipment')" class="nav-link">Book Shipment</a>
+            <a href="javascript:navigateCustomer('my-shipments')" class="nav-link">My Shipments & Tracking</a>
+            <a href="javascript:navigateCustomer('profile')" class="nav-link">My Profile</a>
+            <a href="javascript:navigateCustomer('support')" class="nav-link">Support</a>
+        </nav>
+
+        <div class="auth-btn-group" id="header-auth-group">
+            <a href="../index.html" class="btn btn-outline" style="border-color: var(--accent-purple); color: var(--accent-purple);" title="Switch to Admin Operations Portal">🛡️ Admin Portal</a>
+            <a href="customer-register.html" class="btn btn-primary">Create Account</a>
+        </div>
+    </header>
+
+    <div class="auth-page-container">
+        <div class="customer-auth-card">
+            <div style="margin-bottom: 24px;">
+                <img src="images/logo.png" alt="GlobalTrade Logo" style="height: 48px; width: auto; margin-bottom: 12px;">
+                <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary);">Customer Freight Sign In</h2>
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 4px;">Access your shipment bookings, track live container telemetry, and manage profile</p>
+            </div>
+
+            <form id="form-customer-login" class="auth-form" style="margin-top: 12px;">
+                <div class="form-group">
+                    <label for="customer-email" style="display: block; text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Email Address</label>
+                    <input type="email" id="customer-email" class="form-control" placeholder="name@company.com" required autofocus>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label for="customer-password" style="display: block; text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Password</label>
+                    <input type="password" id="customer-password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div id="auth-error" style="display: none; color: var(--accent-rose); background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.2); padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 14px;"></div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 14px; font-size: 15px; margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Sign In to Customer Portal</span>
+                </button>
+            </form>
+
+            <div style="margin-top: 24px; font-size: 12.5px; color: var(--text-muted);">
+                Protected by Enterprise GlobalTrade Security & Data Encryption
+            </div>
+        </div>
+    </div>
+
+    <!-- Rich Glassmorphic Customer Footer -->
+    <footer class="customer-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img src="images/logo.png" alt="GlobalTrade Logo" style="height: 38px; width: auto;">
+                    <div>
+                        <strong style="font-size: 18px; color: var(--text-primary); display: block;">GlobalTrade Corporation</strong>
+                        <span style="font-size: 10px; color: var(--accent-blue); font-weight: 700; letter-spacing: 1px;">GLOBAL LOGISTICS PLATFORM</span>
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                    Enterprise multi-module supply chain portal powered by GlobalTrade Logistics Cloud.
+                </p>
+            </div>
+
+            <div class="footer-links-grid">
+                <div class="footer-col">
+                    <h4>Customer Portal</h4>
+                    <a href="customer-home.html">Freight Home</a>
+                    <a href="javascript:navigateCustomer('rate-estimator')">Rate Estimator</a>
+                    <a href="javascript:navigateCustomer('book-shipment')">Book Shipment</a>
+                    <a href="javascript:navigateCustomer('my-shipments')">Telemetry Tracking</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Logistics Operations</h4>
+                    <a href="javascript:navigateCustomer('profile')">Shipper Profile</a>
+                    <a href="javascript:navigateCustomer('support')">Customs Operations</a>
+                    <a href="../index.html">Admin Portal</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Global Logistics Hubs</h4>
+                    <span>🇺🇸 Los Angeles (Pacific Coast)</span>
+                    <span>🇸🇬 Singapore (SE Asia Terminal)</span>
+                    <span>🇩🇪 Frankfurt (Central European)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 GlobalTrade Logistics Corporation. All Rights Reserved.</span>
+            <span>Secured with Enterprise End-to-End Encryption & Security</span>
+        </div>
+    </footer>
+
+    <script src="js/customer-app.js"></script>
+</body>
+</html>

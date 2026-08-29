@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalTrade - Database Connection Offline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0b1329;
+            color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .error-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            padding: 44px;
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(239, 68, 68, 0.15);
+        }
+        .error-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 24px;
+        }
+        .error-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .error-desc {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .status-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+            text-align: left;
+            margin-bottom: 28px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn-retry {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-retry:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-icon">🔌</div>
+        <h1 class="error-title">Database Service Unreachable</h1>
+        <p class="error-desc">
+            GlobalTrade is operating in <strong>100% Live Database Mode</strong>. The system could not connect to Payara EJB REST service or MySQL database host.
+        </p>
+
+        <div class="status-box">
+            <div>ERR_CONNECTION_REFUSED</div>
+            <div style="color: #ef4444; margin-top: 4px;">Host: http://localhost:8080/globaltrade/api</div>
+            <div style="color: #64748b; margin-top: 4px;">Mode: STRICT_LIVE_DB (Offline Mock Fallbacks Disabled)</div>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="retryConnection()" class="btn-retry">🔄 Retry Connection</button>
+            <a href="index.html" class="btn-secondary">🛡️ Admin Portal</a>
+            <a href="customer/customer-home.html" class="btn-secondary">🏠 Customer Home</a>
+        </div>
+    </div>
+
+    <script>
+        function retryConnection() {
+            const btn = document.querySelector('.btn-retry');
+            btn.textContent = '⏳ Reconnecting...';
+            btn.disabled = true;
+
+            fetch('/globaltrade/api/metrics/summary')
+                .then(res => {
+                    if (res.ok) {
+                        const redirect = new URLSearchParams(window.location.search).get('from') || 'index.html';
+                        window.location.href = redirect;
+                    } else {
+                        throw new Error('Service response not OK');
+                    }
+                })
+                .catch(() => {
+                    setTimeout(() => {
+                        btn.textContent = '❌ Still Offline (Click to Retry)';
+                        btn.disabled = false;
+                    }, 1000);
+                });
+        }
+    </script>
+</body>
+</html>
