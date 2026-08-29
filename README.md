@@ -60,28 +60,28 @@ The project follows a standard multi-module Maven layout packaging business comp
 
 ```mermaid
 graph TD
-    subgraph Client Layer
-        WebUser[🌐 Customer Portal / Web Browser]
-        AdminUser[👨‍💼 Admin Console]
-        MQClient[📡 Standalone JMS MQ Client]
+    subgraph Client_Layer ["Client Layer"]
+        WebUser["Customer Portal / Web Browser"]
+        AdminUser["Admin Console"]
+        MQClient["Standalone JMS MQ Client"]
     end
 
-    subgraph Presentation & API Layer (globaltrade-web)
-        Servlet[Jakarta Servlet 6.0 / JSP]
-        REST[RESTful Web Services]
+    subgraph Presentation_Layer ["Presentation & API Layer (globaltrade-web)"]
+        Servlet["Jakarta Servlet 6.0 / JSP"]
+        REST["RESTful Web Services"]
     end
 
-    subgraph Enterprise Business Layer (globaltrade-ejb)
-        SLSB[Stateless Session Beans - Shipment & Tariff Services]
-        SFSB[Stateful Session Beans - Booking & Cart Sessions]
-        MDB[Message-Driven Beans - ActiveMQ JMS Listeners]
-        Timers[EJB Background Timers - SLA & Audit Processing]
+    subgraph Business_Layer ["Enterprise Business Layer (globaltrade-ejb)"]
+        SLSB["Stateless Session Beans - Shipment & Tariff Services"]
+        SFSB["Stateful Session Beans - Booking & Cart Sessions"]
+        MDB["Message-Driven Beans - ActiveMQ JMS Listeners"]
+        Timers["EJB Background Timers - SLA & Audit Processing"]
     end
 
-    subgraph Infrastructure & Storage
-        JMSBroker[📨 Apache ActiveMQ JMS Broker]
-        JPA[Persistence Layer / Hibernate ORM]
-        DB[(MySQL 8.0 Database 3NF/BCNF)]
+    subgraph Infrastructure_Layer ["Infrastructure & Storage"]
+        JMSBroker["Apache ActiveMQ JMS Broker"]
+        JPA["Persistence Layer / Hibernate ORM"]
+        DB[("MySQL 8.0 Database 3NF/BCNF")]
     end
 
     WebUser --> Servlet
